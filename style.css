@@ -1,0 +1,522 @@
+/* ============================================================================
+   GLOBAL STYLES & MOBILE OPTIMIZATIONS
+   Resets default browser behavior and optimizes the view for mobile gaming.
+   Prevents text selection, zooming, and scrolling to ensure native-app feel.
+   ============================================================================ */
+* {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none; 
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; 
+    background-color: #000;
+    touch-action: none; 
+}
+
+/* ============================================================================
+   GAME CANVAS
+   ============================================================================ */
+canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* ============================================================================
+   BASE UI COMPONENTS
+   ============================================================================ */
+.hud-box, .game-modal, .hotbar-slot, .inv-item, .inv-slot, input {
+    background-color: rgba(30, 30, 30, 0.7);
+    border: 2px solid rgba(220, 220, 220, 0.4);
+    color: white;
+    border-radius: 8px;
+    backdrop-filter: blur(4px); 
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.hud-btn:active, .hotbar-slot:active, button:active, .inv-item:active, .inv-slot:active {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    color: white !important;
+    border-color: white !important;
+    transition: 0s; 
+}
+
+.hud-btn {
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    background: transparent;
+    color: white !important;
+}
+
+/* ============================================================================
+   HUD ELEMENTS
+   ============================================================================ */
+#ui {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 10px 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); 
+    z-index: 10;
+    background: transparent;
+    border: none;
+}
+
+#btn-camera {
+    position: fixed;
+    top: 20px;
+    right: 75px;
+    width: 50px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    font-weight: bold;
+    z-index: 10;
+}
+
+#btn-backpack {
+    position: fixed;
+    top: 65px;
+    right: 20px;
+    width: 50px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    font-weight: bold;
+    z-index: 10;
+}
+
+#btn-action {
+    position: fixed;
+    bottom: 90px;
+    right: 30px;
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+/* ============================================================================
+   INVENTORY HOTBAR
+   ============================================================================ */
+#hotbar {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%); 
+    width: 80%;
+    max-width: 300px;
+    z-index: 30;
+}
+
+.hotbar-slot {
+    width: 65px !important; 
+    height: 55px !important;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid #fff;
+    border-radius: 8px;
+    margin: 0 5px;
+}
+
+.durability-bg {
+    position: absolute;
+    bottom: 5px;
+    left: 5%;
+    width: 90%;
+    height: 6px;
+    background: rgba(0,0,0,0.8);
+    border-radius: 3px;
+    display: none;
+    z-index: 5;
+}
+
+.durability-fill {
+    width: 100%;
+    height: 100%;
+    background: #2ecc71;
+    border-radius: 3px;
+    transition: width 0.2s, background-color 0.2s;
+}
+
+.hotbar-slot.active {
+    border-color: white;
+    background-color: rgba(100, 100, 100, 0.8);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+.badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: rgba(200, 200, 200, 0.9);
+    color: black;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+/* ============================================================================
+   MODALS (INVENTORY, DIALOGUE, SETTINGS)
+   ============================================================================ */
+.game-modal {
+    position: fixed;
+    padding: 20px;
+    z-index: 20;
+    text-align: center;
+}
+
+/* INCREASE THE WHOLE MODAL ALOMG WITH TEXT AND BUTTONS */
+
+.landscape-modal {
+    top: 5%;
+    left: 5%;
+    width: 90%;
+    height: 75%;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.modal-header h3 { margin: 0; }
+
+#dialogue-box {
+    top: 20px;
+    left: 50%; 
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 500px;
+}
+
+/* ============================================================================
+   INVENTORY GRID & DRAG-AND-DROP SYSTEM
+   ============================================================================ */
+#inventory-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.inv-item {
+    padding: 15px;
+    min-width: 90px;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.1s;
+}
+
+/* MERGED: Dragging States for both Backpack Slots and Items */
+.inv-item.dragging, .inv-slot.dragging {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.9;
+    transform: scale(1.1);
+    border-color: white;
+    background-color: rgba(60, 60, 60, 0.9);
+    box-shadow: 0 0 15px rgba(255,255,255,0.5);
+}
+
+.backpack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 10px;
+    overflow-y: auto;
+    touch-action: pan-y; 
+}
+
+.inv-slot {
+    text-align: center;
+    font-weight: bold;
+    position: relative;
+    min-height: 100px;
+    font-size: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* ============================================================================
+   MOBILE VIRTUAL JOYSTICK & TOUCH ZONES
+   ============================================================================ */
+.touch-zone {
+    position: absolute;
+    top: 0;
+    height: 100vh;
+    width: 50vw; 
+    z-index: 1;
+}
+
+#touch-left { left: 0; }
+#touch-right { right: 0; }
+
+#joystick-base {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    display: none; 
+    pointer-events: none;
+}
+
+#joystick-knob {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.joystick-fixed { display: block !important; left: 115px !important; bottom: -5px !important; top: auto !important; }
+.joystick-invisible { display: none !important; }
+
+/* ============================================================================
+   RESPONSIVE DESIGN: LANDSCAPE LOCK
+   ============================================================================ */
+   
+#landscape-lock {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    color: white;
+    z-index: 999999 !important;
+    /* Force this above ALL game and HUD layers */
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+
+@media screen and (orientation: portrait) { 
+    #landscape-lock { display: flex; } 
+    /* Physically hide the game UI so it can never bleed through the lock screen */
+    #ui, #hp-ui, .hud-btn, #hotbar, #main-menu, .draggable-hud, #hud-layout-controls, #btn-action { 
+        display: none !important; 
+    }
+}
+
+
+/* ============================================================================
+   SETTINGS MENU GRID & TOGGLES
+   ============================================================================ */
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 10px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* MERGED: Settings Option layout styling */
+.settings-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 15px;
+}
+
+/* MERGED: Input layout styling */
+input[type="number"] {
+    width: 60px; 
+    padding: 5px; 
+    text-align: center;
+    color: white;
+    background: rgba(0,0,0,0.5);
+}
+
+.toggle-circle {
+    width: 50px;
+    height: 24px;
+    border-radius: 12px;
+    border: 2px solid white;
+    background-color: #e74c3c; 
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.toggle-circle::before {
+    content: "OFF";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    transition: all 0.2s;
+}
+
+.toggle-circle::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.toggle-circle.active {
+    background-color: #2ecc71; 
+    border-color: #2ecc71;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+}
+
+.toggle-circle.active::before {
+    content: "ON";
+    left: 8px;
+    right: auto;
+}
+
+.toggle-circle.active::after {
+    transform: translateX(26px);
+}
+
+/* ============================================================================
+   CARAVAN SHOP
+   ============================================================================ */
+#caravan-buy-section,
+#caravan-sell-section {
+    height: 50vh !important;
+    overflow-y: auto !important;
+    touch-action: pan-y !important; 
+    pointer-events: auto !important;
+    display: flex;
+    flex-direction: column;
+    gap: 5px !important;
+    width: 100%;
+    padding-bottom: 20px;
+    align-items: center;
+}
+
+#caravan-buy-section .hud-btn, #caravan-sell-section .hud-btn {
+    background: rgba(46, 204, 113, 0.15) !important; 
+    border: 2px solid white !important;
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.5) !important;
+    font-size: 15px !important;
+    padding: 12px !important;
+    width: 90% !important;
+    height: auto !important;
+    color: white !important;
+    text-align: center;
+    margin: 4px auto !important;
+    border-radius: 8px !important;
+    display: block;
+}
+
+#caravan-sell-section #close-sell {
+    background: rgba(231, 76, 60, 0.25) !important; 
+    border-color: #ff4d4d !important;
+}
+
+/* ============================================================================
+   HUD LAYOUT EDITING MODE
+   ============================================================================ */
+.hud-edit-mode .draggable-hud {
+    border: 2px dashed #f1c40f !important;
+    background-color: rgba(241, 196, 15, 0.3) !important;
+    pointer-events: auto !important;
+    z-index: 10000 !important;
+    touch-action: none;
+    cursor: move;
+    /* FIX: Force hidden buttons (like TALK) to show up so they can be arranged! */
+    display: flex !important;
+    opacity: 1 !important;
+}
+
+#hud-layout-controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 10001;
+}
+
+/* ============================================================================
+   MAIN MENU
+   ============================================================================ */
+   
+   
+#main-menu {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(20, 20, 31, 0.95);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: white !important; 
+    font-family: Arial, sans-serif;
+}
+#main-menu span, #main-menu h2 { color: white !important; }
+
+.menu-title {
+    font-size: 25px; color: #2ecc71 !important; margin-bottom: 40px; text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    text-align: center; font-weight: bold; font-family: sans-serif;
+}
+
+.menu-btn {
+    /* FIX: Scaled down buttons to perfectly fit mobile landscape without overflowing */
+    font-size: 18px; padding: 10px 20px; margin: 5px; width: 200px;
+    background: rgba(0,0,0,0.6); border: 2px solid white; color: white !important;
+    border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;
+}
+
+.menu-btn:active { background: white; color: black !important; transition: 0s; }
