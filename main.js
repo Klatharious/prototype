@@ -291,7 +291,7 @@ window.MONSTER_KILL_REWARD = 5;      // Global gold reward granted to player upo
 
 // --- Environment & Time System ---
 let timeOfDay = 8;                   // Current in-game hour (0-24)
-let timeSpeed = 0.3;                 // Progression rate of the in-game clock
+let timeSpeed = 0.01;                 // Progression rate of the in-game clock
 
 // --- Game Engine Lifecycle ---
 // Valid states: 'MENU', 'PLAYING', 'PAUSED', 'DIALOGUE', 'SHOP'
