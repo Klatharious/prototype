@@ -1,3 +1,6 @@
+/*
+//=== STYLE.CSS ===//
+*/
 /* ============================================================================
    GLOBAL STYLES & MOBILE OPTIMIZATIONS
    Resets default browser behavior and optimizes the view for mobile gaming.
@@ -32,6 +35,21 @@ canvas {
 /* ============================================================================
    BASE UI COMPONENTS
    ============================================================================ */
+#fps-display {
+    position: fixed;
+    top: 5px;
+    left: 5px;
+    color: #2ecc71;
+    font-weight: bold;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    pointer-events: none;
+    display: none; /* JS owns visibility */
+}
+
 .hud-box, .game-modal, .hotbar-slot, .inv-item, .inv-slot, input {
     background-color: rgba(30, 30, 30, 0.7);
     border: 2px solid rgba(220, 220, 220, 0.4);
@@ -56,9 +74,6 @@ canvas {
     color: white !important;
 }
 
-/* ============================================================================
-   HUD ELEMENTS
-   ============================================================================ */
 #ui {
     position: fixed;
     top: 20px;
@@ -67,10 +82,37 @@ canvas {
     font-size: 18px;
     font-weight: bold;
     color: white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     z-index: 10;
     background: transparent;
     border: none;
+    /* CSS OWNS LAYOUT: Strictly enforce horizontal flex row so icon and text never stack vertically */
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+/* CSS OWNS ICON SIZE: Explicit sizing authority for HUD gold icon; prevents mobile flex collapse and intrinsic explosion */
+.hud-gold-icon {
+    display: block !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    flex-shrink: 0 !important;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/* CSS OWNS ICON SIZE: Standard sizing for HUD button icons (e.g., backpack) */
+.hud-icon {
+    display: block !important;
+    width: 24px !important;
+    height: 24px !important;
+    object-fit: contain;
+    pointer-events: none;
 }
 
 #btn-camera {
@@ -189,8 +231,7 @@ canvas {
     text-align: center;
 }
 
-/* INCREASE THE WHOLE MODAL ALOMG WITH TEXT AND BUTTONS */
-
+/* INCREASE THE WHOLE MODAL ALONG WITH TEXT AND BUTTONS */
 .landscape-modal {
     top: 5%;
     left: 5%;
@@ -250,25 +291,81 @@ canvas {
     box-shadow: 0 0 15px rgba(255,255,255,0.5);
 }
 
+/* =========================================
+   1. BACKPACK MANUAL SIZING SETTINGS
+   ========================================= */
 .backpack-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
+    grid-template-columns: repeat(5, minmax(0, 1fr)); 
+    justify-content: start; /* CRITICAL: Forces grid items to populate left-to-right */
+    align-content: start; /* CRITICAL: Forces grid items to start from the top row */
+    width: 100%; 
+    box-sizing: border-box;
+    gap: 8px; 
     padding: 10px;
     overflow-y: auto;
+    overflow-x: hidden; 
     touch-action: pan-y; 
 }
 
 .inv-slot {
-    text-align: center;
-    font-weight: bold;
     position: relative;
-    min-height: 100px;
-    font-size: 18px;
+    width: 10%;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    aspect-ratio: 1 / 1; /* Automatically locks height to match your width */
     display: flex;
-    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* BACKPACK ICON SIZING: Control how much of the box the item fills */
+.inv-slot img {
+    width: 70% !important;
+    height: 70% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: contain !important;
+    pointer-events: none !important;
+}
+
+/* =========================================
+   2. HOTBAR MANUAL SIZING SETTINGS
+   ========================================= */
+.hotbar-slot {
+    position: relative;
+    /* HOTBAR BOX SIZING: Manually type the exact size you want the boxes to be */
+    width: 60px;
+    height: 60px;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* HOTBAR ICON SIZING: Control how much of the box the item fills */
+.hotbar-slot img {
+    width: 70% !important;
+    height: 70% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: contain !important;
+    pointer-events: none !important;
+}
+
+/* =========================================
+   3. DRAG GHOST / GLOBAL ICON FALLBACK
+   ========================================= */
+.item-icon {
+    width: 70% !important;
+    height: 70% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: contain !important;
+    pointer-events: none !important;
 }
 
 /* ============================================================================
@@ -314,7 +411,6 @@ canvas {
 /* ============================================================================
    RESPONSIVE DESIGN: LANDSCAPE LOCK
    ============================================================================ */
-   
 #landscape-lock {
     display: none;
     position: fixed;
@@ -332,7 +428,6 @@ canvas {
     text-align: center;
 }
 
-
 @media screen and (orientation: portrait) { 
     #landscape-lock { display: flex; } 
     /* Physically hide the game UI so it can never bleed through the lock screen */
@@ -340,7 +435,6 @@ canvas {
         display: none !important; 
     }
 }
-
 
 /* ============================================================================
    SETTINGS MENU GRID & TOGGLES
@@ -451,11 +545,11 @@ input[type="number"] {
     box-shadow: 0px 4px 6px rgba(0,0,0,0.5) !important;
     font-size: 15px !important;
     padding: 12px !important;
-    width: 90% !important;
+    width: 55% !important; /* FIXED: Prevents scrollbar overlap on mobile */
     height: auto !important;
     color: white !important;
     text-align: center;
-    margin: 4px auto !important;
+    margin: 5px auto !important; /* FIXED: Centered with safe margins */
     border-radius: 8px !important;
     display: block;
 }
@@ -466,57 +560,55 @@ input[type="number"] {
 }
 
 /* ============================================================================
-   HUD LAYOUT EDITING MODE
-   ============================================================================ */
-.hud-edit-mode .draggable-hud {
-    border: 2px dashed #f1c40f !important;
-    background-color: rgba(241, 196, 15, 0.3) !important;
-    pointer-events: auto !important;
-    z-index: 10000 !important;
-    touch-action: none;
-    cursor: move;
-    /* FIX: Force hidden buttons (like TALK) to show up so they can be arranged! */
-    display: flex !important;
-    opacity: 1 !important;
-}
-
-#hud-layout-controls {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 15px;
-    z-index: 10001;
-}
-
-/* ============================================================================
    MAIN MENU
    ============================================================================ */
-   
-   
 #main-menu {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(20, 20, 31, 0.95);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     z-index: 9999;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     color: white !important; 
     font-family: Arial, sans-serif;
 }
+
 #main-menu span, #main-menu h2 { color: white !important; }
 
 .menu-title {
-    font-size: 25px; color: #2ecc71 !important; margin-bottom: 40px; text-shadow: 0 4px 10px rgba(0,0,0,0.8);
-    text-align: center; font-weight: bold; font-family: sans-serif;
+    font-size: 25px;
+    color: #2ecc71 !important;
+    margin-bottom: 40px;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    text-align: center;
+    font-weight: bold;
+    font-family: sans-serif;
 }
 
 .menu-btn {
     /* FIX: Scaled down buttons to perfectly fit mobile landscape without overflowing */
-    font-size: 18px; padding: 10px 20px; margin: 5px; width: 200px;
-    background: rgba(0,0,0,0.6); border: 2px solid white; color: white !important;
-    border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;
+    font-size: 18px;
+    padding: 10px 20px;
+    margin: 5px;
+    width: 200px;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid white;
+    color: white !important;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
-.menu-btn:active { background: white; color: black !important; transition: 0s; }
+.menu-btn:active {
+    background: white;
+    color: black !important;
+    transition: 0s;
+}
