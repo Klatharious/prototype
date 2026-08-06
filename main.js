@@ -1,4 +1,3 @@
-
 // ============================================================================
 // CONFIG.JS - GLOBAL STATE & SETTINGS
 // ============================================================================
@@ -24,8 +23,8 @@ let characterModel = null;           // Reference to the loaded player GLTF/FBX 
 // Aggregates core transform, input vectors, and survival stats
 const player = {
     //Starter spawn point
-    x: -300,
-    z: -290,
+    x: -280,
+    z: -300,
     moveVectorX: 0,                  // Current movement direction on X-axis
     moveVectorZ: 0,                  // Current movement direction on Z-axis
     cameraAngle: Math.PI / 4,        // Horizontal rotation (Yaw)
@@ -57,7 +56,7 @@ let farmInventory = {
 let toolDurability = { axe: 20, shovel: 20, torch: 100};      // Tracks usage before tool breakage
 
 // --- Farming System ---
-const CROP_GROW_TIME = 200;          // Seconds required for a crop to transition to harvestable state
+const CROP_GROW_TIME = 300;          // Seconds required for a crop to transition to harvestable state
 let activePatch = null;              // Reference to the currently targeted farm plot
 const farmPatches = [];              // Array containing references to all active plot instances
 const CROP_NAMES = ['tomato', 'corn', 'carrot', 'wheat']; // Randomization pool for plant types
@@ -78,8 +77,6 @@ let timeSpeed = 0.1;                 // Progression rate of the in-game clock
 // --- Game Engine Lifecycle ---
 // Valid states: 'MENU', 'PLAYING', 'PAUSED', 'DIALOGUE', 'SHOP'
 window.GAME_STATE = 'MENU';
-
-
 
 // ============================================================================
 // HUD.JS - CUSTOMIZABLE UI LAYOUT MANAGER
@@ -397,7 +394,6 @@ window.detachDragListeners = function() {
     document.removeEventListener('mousemove', handleDragMouseMove, { capture: true });
     document.removeEventListener('mouseup', handleDragEnd, { capture: true });
 };
-
 
 // ============================================================================
 // WORLD.JS - ENVIRONMENT & LIGHTING SETUP
@@ -725,50 +721,74 @@ if (checkObjects.length > 0) {
     }
     
     
-    // --- 2. CHECK FOR TREE CHOPPING ---
+// --- 2. CHECK FOR TREE CHOPPING ---
     let tappedTreeIndex = -1;
     if (window.treePositions) {
         for (let i = 0; i < window.treePositions.length; i++) {
             let t = window.treePositions[i];
-            // Uses radius + 1.5 buffer for easier tapping
-            if (t && Math.sqrt((placeX - t.x)**2 + (placeZ - t.z)**2) < (t.radius || 2.5) + 1.5) {
+            // Uses radius + 1.5 buffer for easier tapping. Ignore already chopped trees.
+            if (t && !t.isChopped && Math.sqrt((placeX - t.x)**2 + (placeZ - t.z)**2) < (t.radius || 2.5) + 1.5) {
                 tappedTreeIndex = i; break;
             }
         }
     }
 
-        if (tappedTreeIndex !== -1 && activeHotbarItem === 'axe' && farmInventory.axe > 0) {
+    if (tappedTreeIndex !== -1 && activeHotbarItem === 'axe' && farmInventory.axe > 0) {
         toolDurability.axe--;
-        window.gainItem('wood', 3); // Give 3 Wood upon harvest
         
-        let tx = window.treePositions[tappedTreeIndex].x;
-       
-        let tz = window.treePositions[tappedTreeIndex].z;
+        let t = window.treePositions[tappedTreeIndex];
+        t.health--;
+
+        if (t.health <= 0) {
+    t.isChopped = true;
+    
+    // Random wood reward between 3 and 5
+    let woodReward = Math.floor(Math.random() * 3) + 3;
+    window.gainItem('wood', woodReward);
+    
+    let tx = t.x;
+    let tz = t.z;
+    let groundY = t.originalY; // CRITICAL FIX: Cache the true ground elevation before hiding
+    
+    // Hide visually by finding it in spawnedTrees
+    if (window.spawnedTrees) {
+        window.spawnedTrees.forEach(st => {
+            if (st.position && Math.abs(st.position.x - tx) < 0.1 && Math.abs(st.position.z - tz) < 0.1) {
+                if (st.updateY) st.updateY(-1000);
+                else st.position.y = -1000;
+            }
+        });
+    }
+    
+    // Hide the physical collider by moving it underground instead of destroying it
+    if (t.collider) {
+        t.collider.position.y = -1000;
+    }
+    
+    // Respawn Logic
+    setTimeout(() => {
+        t.isChopped = false;
+        t.health = Math.floor(Math.random() * 3) + 3; // Generate new random HP
         
-        // Hide visually by finding it in spawnedTrees (bypasses the double-push bug in Instancing)
+        // Restore visual position using the cached ground elevation
         if (window.spawnedTrees) {
             window.spawnedTrees.forEach(st => {
                 if (st.position && Math.abs(st.position.x - tx) < 0.1 && Math.abs(st.position.z - tz) < 0.1) {
-                    if (st.updateY) st.updateY(-1000);
-                    else st.position.y = -1000;
+                    if (st.updateY) st.updateY(groundY);
+                    else st.position.y = groundY;
                 }
             });
         }
-       // Correctly remove the physical collider by matching spatial coordinates
-if (window.collidables) {
-    for (let c = window.collidables.length - 1; c >= 0; c--) {
-        let col = window.collidables[c];
-        if (col.position && Math.abs(col.position.x - tx) < 2.0 && Math.abs(col.position.z - tz) < 2.0) {
-            scene.remove(col); // Remove from rendering pipeline
-            if (col.geometry) col.geometry.dispose();
-            if (col.material) col.material.dispose();
-            window.collidables.splice(c, 1); // Mathematically erase it from engine physics
+        
+        // Restore physical collider position
+        if (t.collider) {
+            t.collider.position.y = groundY + (t.collider.geometry.parameters.height / 2);
         }
-    }
+    }, t.respawnTimer || 15000);
 }
 
 
-               // Break Axe logic
+        // Break Axe logic
         if (toolDurability.axe <= 0) {
             farmInventory.axe--;
             if (farmInventory.axe > 0) {
@@ -856,7 +876,7 @@ if (farmInventory[activeHotbarItem] <= 0) {
         }
     }
     updateFarmHUD();
-}
+} 
 
 
 //===ENTITIES>
@@ -1922,6 +1942,7 @@ window.coordTracker.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
 window.coordTracker.style.zIndex = '10';
 window.coordTracker.innerText = "X: 0 | Z: 0";
 document.body.appendChild(window.coordTracker);
+
 
 //===NPC.JS===//
 
@@ -3361,7 +3382,6 @@ if (isMoving && typeof window.snapToTerrain === 'function') {
 renderer.render(scene, camera);
 }
 
-/*
 
 // ==========================================
 // LOCAL STORAGE SAVE SYSTEM
@@ -3404,7 +3424,7 @@ loadGame();
 // Auto-save silently every 5 seconds
 setInterval(saveGame, 5000);
 
-*/
+
 
 // --- THIS MUST ALWAYS BE THE VERY LAST THING TO RUN ---
 // Kickstarts the infinite recursive loop rendering the game.
